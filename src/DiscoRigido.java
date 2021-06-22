@@ -127,7 +127,7 @@ public class DiscoRigido {
 							return true;
 						}
 						System.out.println(
-								"ARQUIVO NÃO FOI CRIADO/COPIADO, NOME INVÁLIDO, JÁ EXISTE UM ARQUIVO COM MESMO NOME.");
+								"ARQUIVO NÃO FOI CRIADO/COPIADO, NOME INVÁLIDO, JÁ EXISTE UM ARQUIVO COM MESMO NOME.\n");
 						return false;
 					}
 
