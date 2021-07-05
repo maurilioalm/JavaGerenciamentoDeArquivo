@@ -4,10 +4,12 @@ public class DiscoRigido {
 
 	static int tamanhoDoDiscoDisponivel = 40; // TAMANHO TOTAL 40MB.
 	static Bloco[] blocos = new Bloco[4];// DIVIDIDOS EM 4 BLOCOS DE 10MB.
+	static Raid1 raid1;
 
 	// CONTRUTOR.
 	public DiscoRigido() {
 		criarBlocos();
+		raid1 = new Raid1();
 	}
 
 	// INSTANCIA BLOCOS.
@@ -50,6 +52,8 @@ public class DiscoRigido {
 					System.out.println("DIRETÓRIO CRIADO NOME: " + diretorio.getNome() + " INCLUIDO NA RAIZ, "
 							+ blocos[i].getNome());
 					imprimeEspacoDisponivelNoDisco();
+					executarRaid1();
+					imprimeEspacoDisponivelNoDiscoRaid1();
 					break;
 				}
 			}
@@ -69,6 +73,7 @@ public class DiscoRigido {
 
 							tamanhoDoDiscoDisponivel += d.getTamanho();
 							blocos[i].setEspacoRestante(blocos[i].getEspacoTotal());
+							executarRaid1();
 							return true;
 						}
 					}
@@ -124,6 +129,8 @@ public class DiscoRigido {
 									+ arquivo.getTamanho() + "MB, ADICIONADO COM SUCESSO NO DIRETÓRIO: " + d.getNome()
 									+ ", LOCALIZADO NA RAIZ, " + blocos[i].getNome());
 							imprimeEspacoDisponivelNoDisco();
+							executarRaid1();
+							imprimeEspacoDisponivelNoDiscoRaid1();
 							return true;
 						}
 						System.out.println(
@@ -156,6 +163,8 @@ public class DiscoRigido {
 							blocos[i].setEspacoRestante(blocos[i].getEspacoRestante() + a.getTamanho());
 							System.out.println("ARQUIVO REMOVIDO COM SUCESSO!");
 							imprimeEspacoDisponivelNoDisco();
+							executarRaid1();
+							imprimeEspacoDisponivelNoDiscoRaid1();
 							return true;
 						}
 					}
@@ -226,5 +235,81 @@ public class DiscoRigido {
 		}
 		return true;
 	}
+
+	private static void executarRaid1() {
+		limparDisco();
+		clonarDisco();
+	}
+
+	private static void limparDisco() {
+		if (raid1 != null) {
+			for (int i = 0; i < 4; i++) {
+				raid1.blocos[i] = null;
+			}
+		}
+	}
+
+	private static void clonarDisco() {
+		for (int i = 0; i < 4; i++) {
+			raid1.blocos[i] = blocos[i];
+			raid1.tamanhoDoDiscoDisponivel = tamanhoDoDiscoDisponivel;
+		}
+	}
+	
+	// LISTA TODOS OS DIRETÓRIOS DENTRO DOS BLOCOS DO RAID1.
+	public static void listarDiretoriosRaid1() {
+		for (int i = 0; i < 4; i++) {
+			if (raid1.blocos[i].getListaDeDiretorios() != null) {
+				for (Diretorio d : blocos[i].getListaDeDiretorios()) {
+					System.out.println("RAID: DIRETORIO: " + d.getNome() + " LOCALIZADO NA RAIZ, TAMANHO:  " + d.getTamanho()
+							+ "MB, LOCAL NO DISCO: " + blocos[i].getNome());
+
+				}
+			}
+		}
+		imprimeEspacoDisponivelNoDisco();
+	}
+	
+	// IMPRIME O ESPAÇO DISPONÍVEL EM DISCO NO RAID1.
+	public static void imprimeEspacoDisponivelNoDiscoRaid1() {
+		fragmentacaoRaid1();
+		System.out.println("RAID : ESPAÇO DISPONÍVEL NO DISCO: " + raid1.tamanhoDoDiscoDisponivel + "MB.\n");
+		listarDiretoriosEArquivosRaid1();
+	}
+	
+	// VERIFICAR FRAGMENTAÇÃO NOS BLOCOS RAID1.
+	public static void fragmentacaoRaid1() {
+		int aux = 0;
+		for (int i = 0; i < 4; i++) {
+			if (raid1.blocos[i].getEspacoRestante() < 9) {
+				aux += blocos[i].getEspacoRestante();
+			}
+		}
+		System.out.println("RAID FRAGMENTAÇÃO INTERNA: " + aux);
+	}
+	
+	// LISTAR TODOS OS DIRETORIOS E ARQUIVOS DO OUTRO HD.
+	public static void listarDiretoriosEArquivosRaid1() {
+		System.out.println("RAID: LISTA DE DIRETÓRIOS E ARQUIVOS:");
+		for (int i = 0; i < 4; i++) {
+			if (raid1.blocos[i].getListaDeDiretorios() != null) {
+				for (Diretorio d : raid1.blocos[i].getListaDeDiretorios()) {
+					if (!d.getArquivo().isEmpty()) {
+						for (Arquivo a : d.getArquivo()) {
+							System.out.println("RAIZ->" + d.getNome() + "->" + a.getNome() + " TAMANHO: "
+									+ a.getTamanho() + "MB " + blocos[i].getNome());
+						}
+
+					} else {
+						System.out.println(
+								"RAIZ->" + d.getNome() + " TAMANHO:  " + d.getTamanho() + "MB " + blocos[i].getNome());
+					}
+
+				}
+			}
+		}
+		imprimeEspacoDisponivelNoDisco();
+	}
+
 
 }
